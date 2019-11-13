@@ -73,6 +73,7 @@ function Write-Event {
 $InitItem = "HKLM:\SYSTEM\CustomerSetup"
 $InitProp = "InitializationSuccessful"
 
+# TODO: Add check to validate if the system is in a Domain and abort in case yes
 $Init = Get-ItemProperty -Path ${InitItem} -Name ${InitProp} 2>$null
 
 if (${Init} -ne $null -And ${Init}.${InitProp} -eq 1) {
