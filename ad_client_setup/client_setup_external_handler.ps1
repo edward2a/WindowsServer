@@ -75,6 +75,8 @@ $InitProp = "InitializationSuccessful"
 
 
 function Check-HostInitialized{
+    # Make sure the current host is not already initialized
+
     $Init = Get-ItemProperty -Path ${InitItem} -Name ${InitProp} 2>$null
 
     if (${Init} -ne $null -And ${Init}.${InitProp} -eq 1) {
@@ -90,6 +92,8 @@ function Check-HostInitialized{
 }
 
 function Check-HostDomainMember{
+    # Validate the current host is not an AD domain member
+
     if (! (Get-WmiObject -Class Win32_ComputerSystem).partofdomain) {
         Write-Event Info "Domain membership verification successful. Host is NOT a domain member."
     } else {
