@@ -73,19 +73,33 @@ function Write-Event {
 $InitItem = "HKLM:\SYSTEM\CustomerSetup"
 $InitProp = "InitializationSuccessful"
 
-# TODO: Add check to validate if the system is in a Domain and abort in case yes
-$Init = Get-ItemProperty -Path ${InitItem} -Name ${InitProp} 2>$null
 
-if (${Init} -ne $null -And ${Init}.${InitProp} -eq 1) {
-    Write-Event Info "Initialization key found, not executing configuration."
-    exit 0
-} else {
-    # Initialize a custom event logger in case it does not exists
-    Create-CustomerLog ${LogName} ${LogSources}
+function Check-HostInitialized{
+    $Init = Get-ItemProperty -Path ${InitItem} -Name ${InitProp} 2>$null
 
-    New-Item -Path ${InitItem} | Out-Null
-    Write-Event Info "Initialization key ${InitItem}/${InitProp} not found."
+    if (${Init} -ne $null -And ${Init}.${InitProp} -eq 1) {
+        Write-Event Info "Initialization key found, not executing configuration."
+        exit 0
+    } else {
+        # Initialize a custom event logger in case it does not exists
+        Create-CustomerLog ${LogName} ${LogSources}
+
+        New-Item -Path ${InitItem} | Out-Null
+        Write-Event Info "Initialization key ${InitItem}/${InitProp} not found."
+    }
 }
+
+function Check-HostDomainMember{
+    if (! (Get-WmiObject -Class Win32_ComputerSystem).partofdomain) {
+        Write-Event Info "Domain membership verification successful. Host is NOT a domain member."
+    } else {
+        Write-Event Err "Domain membership verification failed. Host is a domain member, aborting..."
+        exit 1
+    }
+}
+
+Check-HostInitialized
+Check-HostDomainMember
 
 
 
