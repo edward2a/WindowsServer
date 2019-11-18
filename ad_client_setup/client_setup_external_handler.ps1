@@ -5,7 +5,6 @@ add-type -AssemblyName System.Web
 add-type -AssemblyName System.Net
 
 
-
 ###
 # Static Vars
 ###
@@ -20,14 +19,17 @@ $PwLength = 16
 $PwSpecialChars = 2
 $MetadataAttrs = 'http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes'
 $MetadataHeaders = @{'Flavor' = 'Google'}
+$InitItem = "HKLM:\SYSTEM\CustomerSetup"
+$InitProp = "InitializationSuccessful"
 
 
 ###
 # Functions
 ###
 
-# Check log store exists else create it
 function Create-CustomerLog {
+    # Create a custom event log
+
     param(
         [String]${LogName},
         [String[]]${LogSources})
@@ -42,8 +44,9 @@ function Create-CustomerLog {
         New-EventLog -LogName ${LogName} -Source ${LogSources}}
 }
 
-
 function Write-Event {
+    # Logging wrapper with output to the Event log and console
+
     param(
         [String]$type,
         [String]$msg
@@ -65,14 +68,6 @@ function Write-Event {
 
     Write-Output "${type}: ${msg}"
 }
-
-
-###
-# Pre-Execution check
-###
-$InitItem = "HKLM:\SYSTEM\CustomerSetup"
-$InitProp = "InitializationSuccessful"
-
 
 function Check-HostInitialized{
     # Make sure the current host is not already initialized
@@ -102,10 +97,15 @@ function Check-HostDomainMember{
     }
 }
 
+##############
+#### MAIN ####
+##############
+
+###
+# Pre-Execution check
+###
 Check-HostInitialized
 Check-HostDomainMember
-
-
 
 ###
 # Runtime Vars
@@ -114,14 +114,12 @@ $TransitivePasswordStore = Invoke-RestMethod -Headers ${MetadataHeaders} "${Meta
 $KmsEncryptionKey = Invoke-RestMethod -Headers ${MetadataHeaders} "${MetadataAttrs}/KmsEncryptionKey"
 $GcpKeyRingLocation, $GcpKeyRing, $GcpKey = ${KmsEncryptionKey}.Split("/", 3)
 
-
 ###
 # Generate and set password
 ###
 $AdminPassword = [system.web.security.membership]::GeneratePassword(${PwLength}, ${PwSpecialChars}) | ConvertTo-SecureString -AsPlainText -Force
 
 Get-LocalUser "administrator" | Set-LocalUser -Password ${AdminPassword}
-
 
 ###
 # Save encrypted password in target store
@@ -139,12 +137,10 @@ if (${TransitivePasswordStore}.StartsWith("gs://")) {
 
 }
 
-
 ###
 # Enable Administrator
 ###
 Enable-LocalUser -Name administrator
-
 
 ###
 # Set Initialization Status
