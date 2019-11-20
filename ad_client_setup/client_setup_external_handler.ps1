@@ -110,8 +110,15 @@ Check-HostDomainMember
 ###
 # Runtime Vars
 ###
-$TransitivePasswordStore = Invoke-RestMethod -Headers ${MetadataHeaders} "${MetadataAttrs}/TransitivePasswordStore"
-$KmsEncryptionKey = Invoke-RestMethod -Headers ${MetadataHeaders} "${MetadataAttrs}/KmsEncryptionKey"
+try {
+    $TransitivePasswordStore = Invoke-RestMethod -Headers ${MetadataHeaders} "${MetadataAttrs}/TransitivePasswordStore"
+    $KmsEncryptionKey = Invoke-RestMethod -Headers ${MetadataHeaders} "${MetadataAttrs}/KmsEncryptionKey"
+}
+catch {
+    $msg = $_.Exception.Message
+    Write-Event Err "Failed to fetch a metadata item: ${msg}"
+}
+
 $GcpKeyRingLocation, $GcpKeyRing, $GcpKey = ${KmsEncryptionKey}.Split("/", 3)
 
 ###
