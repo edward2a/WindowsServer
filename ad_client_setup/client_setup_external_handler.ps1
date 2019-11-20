@@ -18,7 +18,7 @@ $LogSources = @(
 $PwLength = 16
 $PwSpecialChars = 2
 $MetadataAttrs = 'http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes'
-$MetadataHeaders = @{'Flavor' = 'Google'}
+$MetadataHeaders = @{'Metadata-Flavor' = 'Google'}
 $InitItem = "HKLM:\SYSTEM\CustomerSetup"
 $InitProp = "InitializationSuccessful"
 
