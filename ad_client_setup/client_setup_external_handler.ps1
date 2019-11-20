@@ -117,6 +117,7 @@ try {
 catch {
     $msg = $_.Exception.Message
     Write-Event Err "Failed to fetch a metadata item: ${msg}"
+    exit 1
 }
 
 $GcpKeyRingLocation, $GcpKeyRing, $GcpKey = ${KmsEncryptionKey}.Split("/", 3)
